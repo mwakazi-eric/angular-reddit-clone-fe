@@ -1,0 +1,59 @@
+name: Reddit Clone Api - Staging
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      GH_VERSION_TAG: staging
+      GH_VERSION: staging-${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 1.17
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+      - name: Build .jar file using Maven
+        run: mvn clean package -DskipTests
+
+      - name: Check if .jar file exists
+        run: |
+          ls target/
+      - name: Build Docker image
+        run: docker build -t mwakazi/reddit-api:${{ env.GH_VERSION_TAG }} .
+
+      - name: Docker tag
+        run: |
+          docker tag mwakazi/reddit-api:${{ env.GH_VERSION_TAG }} mwakazi/reddit-api:${{ env.GH_VERSION }}
+
+      - name: Push Docker image to Docker Hub
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_HUB_TOKEN }}
+        run: |
+          echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+          docker push mwakazi/reddit-api:${{ env.GH_VERSION_TAG }}
+          docker push mwakazi/reddit-api:${{ env.GH_VERSION }}
+  # rollout-to-k8s:
+  #   runs-on: self-hosted
+  #   needs: build-and-push
+  #   steps:
+  #     - name: Checkout repo
+  #       uses: actions/checkout@v4
+
+  #     - name: Setup kubeconfig
+  #       run: |
+  #         mkdir -p ~/.kube
+  #         echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
+  #         chmod 600 ~/.kube/config
+
+  #     - name: Set new image on deployment
+  #       run: |
+  #         kubectl set image deployment/reddit-api reddit-api=mwakazi/reddit-api:staging --namespace=reddit
+  #     - name: Rollout status
+  #       run: |
+  #         kubectl rollout status deployment/reddit-api --namespace=reddit
