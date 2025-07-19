@@ -3,7 +3,7 @@ on:
   push:
     branches: [staging]
 jobs:
-  build-and-deploy:
+  build-and-push-to-docker-hub:
     timeout-minutes: 12
     runs-on: ubuntu-latest
     env:
@@ -52,7 +52,7 @@ jobs:
 
   rollout-to-k8s:
     runs-on: self-hosted
-    needs: build-and-push
+    needs: build-and-push-to-docker-hub
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
