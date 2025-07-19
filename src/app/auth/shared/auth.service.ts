@@ -6,31 +6,28 @@ import { LocalStorageService } from 'ngx-webstorage';
 import { LoginRequestPayload } from '../login/login-request.payload';
 import { LoginResponse } from '../login/login-response.payload';
 import { map, tap } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
+  private apiUrl = environment.BASE_API_URI;
+
   @Output() loggedIn: EventEmitter<boolean> = new EventEmitter();
   @Output() username: EventEmitter<string> = new EventEmitter();
 
-  refreshTokenPayload = {
-    refreshToken: this.getRefreshToken(),
-    username: this.getUserName()
-  }
-
   constructor(private httpClient: HttpClient,
-    private localStorage: LocalStorageService) {
-  }
+    private localStorage: LocalStorageService) {}
 
   signup(signupRequestPayload: SignupRequestPayload): Observable<any> {
-    return this.httpClient.post('http://10.176.16.161:30080/api/auth/signup', signupRequestPayload, { responseType: 'text' });
+    return this.httpClient.post(`${this.apiUrl}/auth/signup`, signupRequestPayload, { responseType: 'text' });
   }
 
   login(loginRequestPayload: LoginRequestPayload): Observable<boolean> {
-    return this.httpClient.post<LoginResponse>('http://10.176.16.161:30080/api/auth/login',
-      loginRequestPayload).pipe(map(data => {
+    return this.httpClient.post<LoginResponse>(`${this.apiUrl}/auth/login`, loginRequestPayload)
+      .pipe(map(data => {
         this.localStorage.store('authenticationToken', data.authenticationToken);
         this.localStorage.store('username', data.username);
         this.localStorage.store('refreshToken', data.refreshToken);
@@ -47,26 +44,32 @@ export class AuthService {
   }
 
   refreshToken() {
-    return this.httpClient.post<LoginResponse>('http://10.176.16.161:30080/api/auth/refresh/token',
-      this.refreshTokenPayload)
+    const refreshTokenPayload = {
+      refreshToken: this.getRefreshToken(),
+      username: this.getUserName()
+    };
+
+    return this.httpClient.post<LoginResponse>(`${this.apiUrl}/auth/refresh/token`, refreshTokenPayload)
       .pipe(tap(response => {
         this.localStorage.clear('authenticationToken');
         this.localStorage.clear('expiresAt');
-
-        this.localStorage.store('authenticationToken',
-          response.authenticationToken);
+        this.localStorage.store('authenticationToken', response.authenticationToken);
         this.localStorage.store('expiresAt', response.expiresAt);
       }));
   }
 
   logout() {
-    this.httpClient.post('http://10.176.16.161:30080/api/auth/logout', this.refreshTokenPayload,
-      { responseType: 'text' })
-      .subscribe(data => {
-        console.log(data);
-      }, error => {
-        throwError(error);
-      })
+    const refreshTokenPayload = {
+      refreshToken: this.getRefreshToken(),
+      username: this.getUserName()
+    };
+
+    this.httpClient.post(`${this.apiUrl}/auth/logout`, refreshTokenPayload, { responseType: 'text' })
+      .subscribe({
+        next: data => console.log(data),
+        error: error => throwError(error)
+      });
+
     this.localStorage.clear('authenticationToken');
     this.localStorage.clear('username');
     this.localStorage.clear('refreshToken');
@@ -76,6 +79,7 @@ export class AuthService {
   getUserName() {
     return this.localStorage.retrieve('username');
   }
+
   getRefreshToken() {
     return this.localStorage.retrieve('refreshToken');
   }

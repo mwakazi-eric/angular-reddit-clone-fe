@@ -1,14 +1,20 @@
 {
   "name": "angular-reddit-clone",
   "version": "0.0.0",
-  "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "test": "ng test",
-    "lint": "ng lint",
-    "e2e": "ng e2e"
-  },
+"scripts": {
+  "ng": "ng",
+  "start": "ng serve",
+  "start:dev": "ng serve --configuration=development",
+  "start:staging": "ng serve --configuration=staging",
+  "start:prod": "ng serve --configuration=production",
+  "build": "ng build",
+  "build:dev": "ng build --configuration=development",
+  "build:staging": "ng build --configuration=staging",
+  "build:prod": "ng build --configuration=production",
+  "test": "ng test",
+  "lint": "ng lint",
+  "e2e": "ng e2e"
+},
   "private": true,
   "dependencies": {
     "@angular/animations": "~9.1.0",

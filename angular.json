@@ -59,6 +59,31 @@
                   "maximumError": "10kb"
                 }
               ]
+            },
+            "staging": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.staging.ts"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": true,
+              "extractCss": true,
+              "namedChunks": true,
+              "aot": true,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true
+            },
+            "development": {
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
             }
           }
         },
@@ -70,6 +95,12 @@
           "configurations": {
             "production": {
               "browserTarget": "angular-reddit-clone:build:production"
+            },
+            "staging": {
+              "browserTarget": "angular-reddit-clone:build:staging"
+            },
+            "development": {
+              "browserTarget": "angular-reddit-clone:build:development"
             }
           }
         },
@@ -122,6 +153,7 @@
           }
         }
       }
-    }},
+    }
+  },
   "defaultProject": "angular-reddit-clone"
 }

@@ -34,7 +34,7 @@ jobs:
         run: npm install
       - run: npm install -g @angular/cli@11
       - name: Build the Angular app
-        run: npm run build
+        run: npm run build:staging
       - name: Build Docker image
         run: |
           docker build -t mwakazi/reddit-fe:${{ env.GH_VERSION_TAG }} .
