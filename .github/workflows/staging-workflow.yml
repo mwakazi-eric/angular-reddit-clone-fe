@@ -1,0 +1,73 @@
+name: Reddit Clone Api - Staging
+on:
+  push:
+    branches: [staging]
+jobs:
+  build-and-deploy:
+    timeout-minutes: 12
+    runs-on: ubuntu-latest
+    env:
+      GH_VERSION: staging-${{github.sha}}
+      GH_VERSION_TAG: staging
+      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      KUBECTL_VERSION: v1.21.2
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Set up Node.js 14.x with npm 6.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+      - run: npm install -g npm@6
+
+      - name: Install dependancies & and build for production
+        run: npm install
+      - run: npm install -g @angular/cli@11
+      - name: Build the Angular app
+        run: npm run build
+      - name: Checkout build directory
+        run: ls
+      - name: Build Docker image
+        run: |
+          docker build -t mwakazi/reddit-fe:${{ env.GH_VERSION_TAG }} .
+      - name: Docker tag
+        run: |
+          docker tag mwakazi/reddit-fe:${{ env.GH_VERSION }} mwakazi/reddit-fe:${{ env.GH_VERSION }}
+      - name: Push Docker image to Docker Hub
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_HUB_TOKEN }}
+        run: |
+          echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+          docker push mwakazi/reddit-fe:${{ env.GH_VERSION }}
+          docker push mwakazi/reddit-fe:${{ env.GH_VERSION_TAG }}
+
+  # rollout-to-k8s:
+  #   runs-on: self-hosted
+  #   needs: build-and-push
+  #   steps:
+  #     - name: Checkout repo
+  #       uses: actions/checkout@v4
+
+  #     - name: Setup kubeconfig
+  #       run: |
+  #         mkdir -p ~/.kube
+  #         echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
+  #         chmod 600 ~/.kube/config
+
+  #     - name: Set new image on deployment
+  #       run: |
+  #         kubectl set image deployment/reddit-api reddit-api=mwakazi/reddit-api:staging --namespace=reddit
+  #     - name: Rollout status
+  #       run: |
+  #         kubectl rollout status deployment/reddit-api --namespace=reddit

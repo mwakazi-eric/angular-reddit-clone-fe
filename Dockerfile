@@ -1,2 +1,2 @@
 FROM nginx:latest
-COPY ./dist/hp-mtek-dynamic-medical-web-app/browser/ /usr/share/nginx/html/
+COPY ./dist/angular-reddit-clone/browser/ /usr/share/nginx/html/
