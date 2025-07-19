@@ -65,7 +65,7 @@ jobs:
 
       - name: Set new image on deployment
         run: |
-          kubectl set image deployment/reddit-fe reddit-fe=mwakazi/reddit-fe:staging --namespace=reddit
+          kubectl rollout restart deployment/reddit-fe --namespace=reddit
       - name: Rollout status
         run: |
           kubectl rollout status deployment/reddit-fe --namespace=reddit
