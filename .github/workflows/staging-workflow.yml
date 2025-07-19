@@ -36,7 +36,7 @@ jobs:
       - name: Build the Angular app
         run: npm run build
       - name: Checkout build directory
-        run: ls
+        run: ls ./dist
       - name: Build Docker image
         run: |
           docker build -t mwakazi/reddit-fe:${{ env.GH_VERSION_TAG }} .
