@@ -35,14 +35,12 @@ jobs:
       - run: npm install -g @angular/cli@11
       - name: Build the Angular app
         run: npm run build
-      - name: Checkout build directory
-        run: ls ./dist/angular-reddit-clone
       - name: Build Docker image
         run: |
           docker build -t mwakazi/reddit-fe:${{ env.GH_VERSION_TAG }} .
       - name: Docker tag
         run: |
-          docker tag mwakazi/reddit-fe:${{ env.GH_VERSION }} mwakazi/reddit-fe:${{ env.GH_VERSION }}
+          docker tag mwakazi/reddit-fe:${{ env.GH_VERSION_TAG }} mwakazi/reddit-fe:${{ env.GH_VERSION }}
       - name: Push Docker image to Docker Hub
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
